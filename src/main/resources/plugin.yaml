@@ -1,0 +1,22 @@
+# Refer https://docs.halo.run/developer-guide/plugin/basics/manifest
+
+apiVersion: plugin.halo.run/v1alpha1
+kind: Plugin
+metadata:
+  # The name defines how the plugin is invoked, A unique name
+  name: comment-interact
+spec:
+  enabled: true
+  requires: ">=2.21.0"
+  author:
+    name: Handsome
+    website: https://github.com/Handsome
+  logo: logo.svg
+  homepage: https://github.com/Handsome/comment-interact#readme
+  repo: https://github.com/Handsome/comment-interact
+  issues: https://github.com/Handsome/comment-interact/issues
+  displayName: "comment-interact"
+  description: "comment-interact - Halo 插件"
+  license:
+    - name: "GPL-3.0"
+      url: "https://github.com/Handsome/comment-interact/blob/main/LICENSE"
