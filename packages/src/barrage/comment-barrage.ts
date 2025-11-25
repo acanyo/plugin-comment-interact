@@ -4,7 +4,6 @@ import { styleMap } from 'lit/directives/style-map.js';
 import { repeat } from 'lit/directives/repeat.js';
 import { barrageStyles } from './barrage-styles';
 import type { CommentData } from '../comment/comment-types';
-import { getAvatarInitial, getAvatarUrl } from '../comment/comment-avatar';
 
 // Helper function to strip HTML tags for plain text display
 function stripHtml(html: string): string {
@@ -19,7 +18,6 @@ interface BarrageItem {
   data: CommentData;
   top: number; // 轨道垂直位置
   duration: number; // 动画时长(s)
-  avatarUrl: string | null;
   startTime: number; // 开始时间，用于清理
 }
 
@@ -127,15 +125,6 @@ export class CommentBarrage extends LitElement {
     }
   }
 
-  /**
-   * 模拟 API 调用（预留）
-   */
-  async fetchComments(postId: string) {
-    console.log('Fetching comments for post:', postId);
-    // TODO: 对接真实 API
-    // this.comments = await api.getComments(postId);
-  }
-
   private loopLogic = () => {
     if (!this.isPlaying) return;
 
@@ -153,12 +142,8 @@ export class CommentBarrage extends LitElement {
       }
       this.lastSpawnTime = now;
     }
-
-    // 检查是否所有弹幕都已完成
     if (!this.loop && this.currentIndex >= this.comments.length && this.activeBarrages.length === 0) {
-      console.log('[comment-barrage] All barrages completed');
       this.stop();
-      // 派发完成事件
       this.dispatchEvent(new CustomEvent('barrage-complete', {
         bubbles: true,
         composed: true
@@ -174,7 +159,6 @@ export class CommentBarrage extends LitElement {
       if (this.loop) {
         this.currentIndex = 0;
       } else {
-        // 播放完毕，不再发射新弹幕
         return;
       }
     }
@@ -184,21 +168,16 @@ export class CommentBarrage extends LitElement {
 
     if (success) {
       this.currentIndex++;
-      // 随机化下一次发射间隔，避免看起来太机械
       this.spawnInterval = 500 + Math.random() * 1500;
     } else {
-      // 发射失败（没轨道），稍微缩短重试间隔
       this.spawnInterval = 200;
     }
   }
 
   private async spawnBarrage(comment: CommentData): Promise<boolean> {
-    // 寻找可用轨道
     const now = Date.now();
     let trackIndex = -1;
 
-    // 简单的轨道选择策略：找到第一个冷却完毕的轨道
-    // 为了更均匀，可以随机从可用的轨道里选一个
     const availableTracks: number[] = [];
     for (let i = 0; i < this.rows; i++) {
       if (this.trackAvailability[i] <= now) {
@@ -207,39 +186,23 @@ export class CommentBarrage extends LitElement {
     }
 
     if (availableTracks.length === 0) {
-      return false; // 无可用轨道
+      return false;
     }
-
-    // 随机选择一个可用轨道
     trackIndex = availableTracks[Math.floor(Math.random() * availableTracks.length)];
-
-    // 计算该弹幕的参数
-    // 这里的 duration 可以根据弹幕长度动态调整，或者稍微随机化
-    const duration = this.baseTime + (Math.random() * 2 - 1); // baseTime +/- 1s
-
-    // 估算该弹幕占用的时间窗口
-    // 假设弹幕平均文字宽度 200px，屏幕宽 1000px，速度 v = 1000/10 = 100px/s
-    // 占用时间 = (文字宽度 + 间距) / 速度
-    // 这里简单估算：文字越多，冷却时间越长
+    const duration = this.baseTime + (Math.random() * 2 - 1);
     const textLength = comment.content.length;
-    const estimatedWidth = 50 + textLength * 14; // 头像 + 文字
-    // 简单粗暴的冷却时间计算，实际应该获取容器宽度计算
-    // 假设屏幕宽度 1000px (保守估计)
+    const estimatedWidth = 50 + textLength * 14;
     const containerWidth = this.container?.clientWidth || 1000;
     const speed = containerWidth / duration;
     const occupyTime = ((estimatedWidth + 100) / speed) * 1000; // ms, +100px 间距
 
     this.trackAvailability[trackIndex] = now + occupyTime;
 
-    // 获取头像
-    const avatarUrl = await getAvatarUrl(comment);
-
     const barrageItem: BarrageItem = {
       id: Math.random().toString(36).substr(2, 9),
       data: comment,
       top: trackIndex * (100 / this.rows), // 百分比位置
       duration: duration,
-      avatarUrl: avatarUrl,
       startTime: performance.now()
     };
 
@@ -263,12 +226,7 @@ export class CommentBarrage extends LitElement {
               })}
               @animationend=${() => this.removeBarrage(item.id)}
             >
-              <div class="barrage-avatar">
-                ${item.avatarUrl
-                  ? html`<img src="${item.avatarUrl}" alt="${item.data.displayName}" class="barrage-avatar">`
-                  : html`<div class="barrage-avatar-placeholder">${getAvatarInitial(item.data.displayName)}</div>`
-                }
-              </div>
+              <span class="barrage-author">${item.data.displayName}:</span>
               <span class="barrage-content" title="${stripHtml(item.data.content)}">${stripHtml(item.data.content)}</span>
             </div>
           `
@@ -278,7 +236,6 @@ export class CommentBarrage extends LitElement {
   }
 
   private removeBarrage(id: string) {
-    // 动画结束后的清理，虽然 loopLogic 也会清理，但这个更及时
     this.activeBarrages = this.activeBarrages.filter(item => item.id !== id);
   }
 }

@@ -7,7 +7,7 @@ export const barrageStyles = css`
     width: 100%;
     height: 100%;
     overflow: hidden;
-    pointer-events: none; /* 默认不阻挡底部内容交互 */
+    pointer-events: none;
   }
 
   .barrage-container {
@@ -32,11 +32,11 @@ export const barrageStyles = css`
     font-size: 14px;
     white-space: nowrap;
     user-select: none;
-    pointer-events: auto; /* 弹幕本身可以交互（如悬停暂停） */
+    pointer-events: auto;
     will-change: transform;
     transition: background-color 0.2s;
     cursor: default;
-    animation-timing-function: linear !important; /* 强制匀速 */
+    animation-timing-function: linear !important;
     animation-fill-mode: forwards;
   }
 
@@ -51,26 +51,10 @@ export const barrageStyles = css`
     z-index: 20;
   }
 
-  .barrage-avatar {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-  }
-
-  .barrage-avatar-placeholder {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background-color: #555;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
+  .barrage-author {
     font-weight: bold;
-    color: #fff;
-    text-transform: uppercase;
+    color: #ffcd38;
+    margin-right: 4px;
   }
 
   .barrage-content {
@@ -78,8 +62,6 @@ export const barrageStyles = css`
     overflow: hidden;
     text-overflow: ellipsis;
   }
-
-  /* 简单的动画定义，实际运行会通过 JS 动态计算时长 */
   @keyframes moveLeft {
     from {
       transform: translateX(100vw);
