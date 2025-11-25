@@ -14,8 +14,17 @@ const commentNames = computed<string[]>(() => {
 
 const hasComments = computed(() => commentNames.value.length > 0)
 
-const updateComments = (names: string[]) => {
-  const safeNames = names.filter(Boolean)
+const updateComments = (names: string[], merge = true) => {
+  let safeNames: string[]
+
+  if (merge) {
+    const existingNames = commentNames.value
+    const allNames = [...new Set([...existingNames, ...names])]
+    safeNames = allNames.filter(Boolean)
+  } else {
+    safeNames = names.filter(Boolean)
+  }
+
   props.updateAttributes({
     name: safeNames[0] || null,
     names: safeNames,
@@ -24,7 +33,7 @@ const updateComments = (names: string[]) => {
 
 const removeName = (target: string) => {
   const next = commentNames.value.filter((name) => name !== target)
-  updateComments(next)
+  updateComments(next, false)
 }
 
 const moveNameUp = (target: string) => {
@@ -32,7 +41,7 @@ const moveNameUp = (target: string) => {
   const index = list.indexOf(target)
   if (index <= 0) return
   ;[list[index - 1], list[index]] = [list[index], list[index - 1]]
-  updateComments(list)
+  updateComments(list, false)
 }
 
 const moveNameDown = (target: string) => {
@@ -40,7 +49,7 @@ const moveNameDown = (target: string) => {
   const index = list.indexOf(target)
   if (index === -1 || index === list.length - 1) return
   ;[list[index + 1], list[index]] = [list[index], list[index + 1]]
-  updateComments(list)
+  updateComments(list, false)
 }
 
 const commentModal = ref(false)

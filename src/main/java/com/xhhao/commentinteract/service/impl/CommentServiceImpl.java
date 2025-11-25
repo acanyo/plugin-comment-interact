@@ -1,15 +1,20 @@
 package com.xhhao.commentinteract.service.impl;
 
+import static org.springframework.data.domain.Sort.Order.desc;
+import static run.halo.app.extension.index.query.QueryFactory.contains;
+import static run.halo.app.extension.index.query.QueryFactory.or;
+
 import com.xhhao.commentinteract.extension.Comment;
 import com.xhhao.commentinteract.extension.Reply;
 import com.xhhao.commentinteract.model.CommentVo;
 import com.xhhao.commentinteract.service.CommentService;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import run.halo.app.core.extension.User;
 import run.halo.app.core.user.service.UserService;
 import run.halo.app.extension.ListOptions;
 import run.halo.app.extension.ListResult;
@@ -22,26 +27,40 @@ import run.halo.app.extension.router.selector.FieldSelector;
 public class CommentServiceImpl implements CommentService {
     private final ReactiveExtensionClient client;
     private final UserService userSvc;
-    private ListOptions buildListOptions() {
+
+    private ListOptions buildListOptions(String keyword) {
         var listOptions = new ListOptions();
-        listOptions.setFieldSelector(
-            FieldSelector.of(QueryFactory.isNull("metadata.deletionTimestamp")));
-        return listOptions;
+        var builder = ListOptions.builder(listOptions);
+        builder.andQuery(QueryFactory.isNull("metadata.deletionTimestamp"));
+        Optional.ofNullable(keyword)
+            .filter(StringUtils::isNotBlank)
+            .ifPresent(k -> builder.andQuery(or(
+                contains("spec.content", k),
+                contains("spec.raw", k)
+                // contains("spec.owner.displayName", k),
+                // contains("spec.owner.name", k)
+            )));
+        return builder.build();
     }
+
     @Override
     public Flux<CommentVo> getComment() {
-        Flux<CommentVo> commentFlux = client.listAll(Comment.class, buildListOptions(), Sort.unsorted())
+        return getComment(null);
+    }
+
+    public Flux<CommentVo> getComment(String keyword) {
+        Flux<CommentVo> commentFlux = client.listAll(Comment.class, buildListOptions(keyword), Sort.by(desc("metadata.creationTimestamp"),desc("metadata.name")))
             .map(this::fromComment);
 
-        Flux<CommentVo> replyFlux = client.listAll(Reply.class, buildListOptions(), Sort.unsorted())
+        Flux<CommentVo> replyFlux = client.listAll(Reply.class, buildListOptions(keyword),Sort.by(desc("metadata.creationTimestamp"),desc("metadata.name")))
             .map(this::fromReply);
 
         return Flux.concat(commentFlux, replyFlux);
     }
 
     @Override
-    public Mono<ListResult<CommentVo>> getComments(int page, int size) {
-        return getComment()
+    public Mono<ListResult<CommentVo>> getComments(int page, int size, String keyword) {
+        return getComment(keyword)
             .collectList()
             .map(list -> {
                 int total = list.size();

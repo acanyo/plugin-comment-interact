@@ -31,10 +31,10 @@ export const commentApiClient = {
   /**
    * 分页获取评论
    */
-  async listComments(page = 1, size = 20): Promise<{ data: CommentListResult }> {
+  async listComments(page = 1, size = 20, keyword?: string): Promise<{ data: CommentListResult }> {
     return axiosInstance.get(
       `/apis/api.comment.interact.xhhao.com/v1alpha1/allComments`,
-      { params: { page, size } }
+      { params: { page, size, keyword } }
     )
   },
 

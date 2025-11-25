@@ -17,12 +17,13 @@ function copyToStatic(): Plugin {
         mkdirSync(staticDir, { recursive: true });
       }
 
-      const file = 'comment-reference.umd.js';
-      const src = join(distDir, file);
-      const dest = join(staticDir, file);
-      if (existsSync(src)) {
-        copyFileSync(src, dest);
-        console.log(`✓ Copied ${file} to ${staticDir}`);
+      // 复制 JS 文件
+      const jsFile = 'comment-reference.umd.js';
+      const jsSrc = join(distDir, jsFile);
+      const jsDest = join(staticDir, jsFile);
+      if (existsSync(jsSrc)) {
+        copyFileSync(jsSrc, jsDest);
+        console.log(`✓ Copied ${jsFile} to ${staticDir}`);
       }
     },
   };

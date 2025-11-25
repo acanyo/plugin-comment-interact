@@ -29,18 +29,6 @@ const pageSize = ref(20)
 const total = ref(0)
 const totalPages = computed(() => Math.ceil(total.value / pageSize.value))
 
-// 本地搜索过滤
-const filteredComments = computed(() => {
-  if (!keyword.value) {
-    return commentList.value
-  }
-  return commentList.value.filter(
-    (comment) =>
-      comment.displayName?.toLowerCase().includes(keyword.value.toLowerCase()) ||
-      comment.content?.toLowerCase().includes(keyword.value.toLowerCase())
-  )
-})
-
 // 监听页码或每页数量变化，重新加载数据
 watch([page, pageSize], () => {
   fetchComments()
@@ -55,7 +43,7 @@ async function fetchComments() {
   isFetching.value = true
   isLoading.value = commentList.value.length === 0
   try {
-    const { data } = await commentApiClient.listComments(page.value, pageSize.value)
+    const { data } = await commentApiClient.listComments(page.value, pageSize.value, keyword.value)
     commentList.value = data.items || []
     total.value = data.total || 0
   } catch (error) {
@@ -102,7 +90,7 @@ function getAvatarText(name: string): string {
     mount-to-body
     @close="emit('close')"
   >
-    <div class="mb-4">
+    <!-- <div class="mb-4">
       <div class="flex items-center gap-2">
         <div class="flex-1">
           <input
@@ -110,6 +98,7 @@ function getAvatarText(name: string): string {
             type="text"
             placeholder="搜索评论内容或创建人..."
             class="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-gray-400 hover:border-gray-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            @keydown.enter="fetchComments()"
           />
         </div>
         <VButton
@@ -126,14 +115,14 @@ function getAvatarText(name: string): string {
       <div class="mt-2 text-xs text-gray-500">
         共 {{ total }} 条评论，当前第 {{ page }} 页
       </div>
-    </div>
+    </div> -->
 
     <div class="comment-list-container">
       <VLoading v-if="isLoading" />
-      <template v-else-if="filteredComments.length > 0">
+      <template v-else-if="commentList.length > 0">
         <div class="masonry-container">
           <div
-            v-for="comment in filteredComments"
+            v-for="comment in commentList"
             :key="comment.metadataName"
             :class="[
               'comment-card group relative cursor-pointer rounded-lg border-2 bg-white p-3 shadow-sm transition-all hover:shadow-md',
@@ -267,9 +256,10 @@ function getAvatarText(name: string): string {
 }
 
 /* 选择模式下禁用内容中的链接点击，避免误跳转 */
-.comment-content a {
+.comment-content :deep(a) {
   pointer-events: none;
   color: inherit;
   text-decoration: none;
+  cursor: default;
 }
 </style>

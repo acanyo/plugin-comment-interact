@@ -56,7 +56,38 @@ const CommentBlockExtension = Node.create({
   parseHTML() {
     return [
       {
+        // 优先匹配包含多个评论的容器
+        tag: 'div.comment-reference-group',
+        getAttrs: (node) => {
+          if (typeof node === 'string') return false
+          const element = node as HTMLElement
+          const commentElements = element.querySelectorAll('comment-reference')
+
+          if (commentElements.length === 0) return false
+
+          const names: string[] = []
+          commentElements.forEach((el) => {
+            const name = el.getAttribute('name')
+            if (name) names.push(name)
+          })
+
+          return {
+            name: names[0] || null,
+            names: names.length > 0 ? names : null,
+          }
+        },
+      },
+      {
         tag: 'comment-reference',
+        getAttrs: (node) => {
+          if (typeof node === 'string') return false
+          const element = node as HTMLElement
+          const name = element.getAttribute('name')
+          return {
+            name: name || null,
+            names: name ? [name] : null,
+          }
+        },
       },
     ]
   },
@@ -72,18 +103,19 @@ const CommentBlockExtension = Node.create({
       : []
 
     if (!names.length) {
-      return ['comment-reference', {}]
+      return ['div', { class: 'comment-reference-group' }, ['comment-reference', {}]]
     }
 
     const children: any[] = []
     names.forEach((n, index) => {
-      if (index > 0) {
-        children.push('br')
-      }
-      children.push(['comment-reference', { name: n }])
+      // 用 div 包裹每个评论，添加间距样式
+      children.push([
+        'div',
+        { style: index > 0 ? 'margin-top: 0.8rem;' : '' },
+        ['comment-reference', { name: n, class: 'comment-reference-item' }]
+      ])
     })
-
-    return ['div', {}, ...children]
+    return ['div', { class: 'comment-reference-group' }, ...children]
   },
 
   addCommands() {

@@ -67,7 +67,8 @@ public class CommentEndpoint implements CustomEndpoint {
     private Mono<ServerResponse> listComments(ServerRequest request) {
         int page = request.queryParam("page").map(Integer::parseInt).orElse(1);
         int size = request.queryParam("size").map(Integer::parseInt).orElse(12);
-        return commentService.getComments(page, size)
+        String keyword = request.queryParam("keyword").orElse(null);
+        return commentService.getComments(page, size, keyword)
             .flatMap(result -> ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(result));

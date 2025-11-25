@@ -13,7 +13,7 @@ public interface CommentService {
     /**
      * 分页获取评论
      */
-    Mono<ListResult<CommentVo>> getComments(int page, int size);
+    Mono<ListResult<CommentVo>> getComments(int page, int size, String keyword);
 
     Mono<CommentVo> getCommentByName(String name);
 }

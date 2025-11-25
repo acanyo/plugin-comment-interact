@@ -3,8 +3,8 @@ import { css } from 'lit';
 export const commentStyles = css`
   :host {
     display: block;
-    --comment-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    
+    margin-bottom: 0.8rem;
+
     /* Light theme colors */
     --comment-bg-color: #ffffff;
     --comment-border-color: #e5e7eb;
@@ -15,7 +15,7 @@ export const commentStyles = css`
     --comment-reply-bg: #f9fafb;
     --comment-hover-bg: #f3f4f6;
     --comment-avatar-bg: #e5e7eb;
-    
+
     /* Dark theme colors */
     --comment-bg-color-dark: #1f2937;
     --comment-border-color-dark: #374151;
@@ -26,10 +26,14 @@ export const commentStyles = css`
     --comment-reply-bg-dark: #111827;
     --comment-hover-bg-dark: #374151;
     --comment-avatar-bg-dark: #4b5563;
-    
-    font-family: var(--comment-font-family);
+
+    font-family: inherit;
     font-size: 14px;
     line-height: 1.6;
+  }
+
+  :host(:last-child) {
+    margin-bottom: 0;
   }
 
   .comment-container {

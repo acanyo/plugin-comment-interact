@@ -1,6 +1,7 @@
 package com.xhhao.commentinteract;
 
 import com.xhhao.commentinteract.extension.Comment;
+import com.xhhao.commentinteract.extension.Reply;
 import org.springframework.stereotype.Component;
 import run.halo.app.extension.SchemeManager;
 import run.halo.app.extension.index.IndexSpec;
@@ -45,6 +46,25 @@ public class CommentInteractPlugin extends BasePlugin {
                 .setName("spec.owner.name")
                 .setIndexFunc(simpleAttribute(
                     Comment.class, comment -> comment.getSpec().getOwner().getName())));
+        });
+
+        schemeManager.register(Reply.class, indexSpecs -> {
+            indexSpecs.add(new IndexSpec()
+                .setName("spec.content")
+                .setIndexFunc(simpleAttribute(
+                    Reply.class, reply -> reply.getSpec().getContent())));
+            indexSpecs.add(new IndexSpec()
+                .setName("spec.raw")
+                .setIndexFunc(simpleAttribute(
+                    Reply.class, reply -> reply.getSpec().getRaw())));
+            indexSpecs.add(new IndexSpec()
+                .setName("spec.owner.displayName")
+                .setIndexFunc(simpleAttribute(
+                    Reply.class, reply -> reply.getSpec().getOwner().getDisplayName())));
+            indexSpecs.add(new IndexSpec()
+                .setName("spec.owner.name")
+                .setIndexFunc(simpleAttribute(
+                    Reply.class, reply -> reply.getSpec().getOwner().getName())));
         });
     }
 
