@@ -36,6 +36,8 @@ export const barrageStyles = css`
     will-change: transform;
     transition: background-color 0.2s;
     cursor: default;
+    animation-timing-function: linear !important; /* 强制匀速 */
+    animation-fill-mode: forwards;
   }
 
   .barrage-item:hover {

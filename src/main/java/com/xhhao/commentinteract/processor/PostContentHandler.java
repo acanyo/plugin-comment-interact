@@ -35,9 +35,15 @@ public class PostContentHandler implements ReactivePostContentHandler {
             properties.setProperty("kind", Post.GVK.kind());
             properties.setProperty("group", Post.GVK.group());
             properties.setProperty("name", post.getMetadata().getName());
+            // speed="20"     <!-- 滚动速度(秒)，越小越快，默认20 -->
+            //     rows="8"       <!-- 轨道数量，默认8 -->
+            //     loop="false"   <!-- 是否循环播放，默认false -->
+            properties.setProperty("speed","10");
+            properties.setProperty("rows","8");
+            properties.setProperty("loop","false");
 
             String dom = PROPERTY_PLACEHOLDER_HELPER.replacePlaceholders(
-                "<xhhao-barrage kind=\"${kind}\" group=\"${group}\" name=\"${name}\"></xhhao-barrage>",
+                "<xhhao-barrage kind=\"${kind}\" group=\"${group}\" name=\"${name}\" speed=\"${speed}\" rows=\"${rows}\" loop=\"${loop}\"></xhhao-barrage>",
                 properties
             );
 

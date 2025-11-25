@@ -6,6 +6,13 @@ import { barrageStyles } from './barrage-styles';
 import type { CommentData } from '../comment/comment-types';
 import { getAvatarInitial, getAvatarUrl } from '../comment/comment-avatar';
 
+// Helper function to strip HTML tags for plain text display
+function stripHtml(html: string): string {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || '';
+}
+
 // 扩展 CommentData 以包含运行时状态
 interface BarrageItem {
   id: string; // 唯一ID，用于 repeat key
@@ -134,15 +141,9 @@ export class CommentBarrage extends LitElement {
 
     const now = performance.now();
 
-    // 清理已完成的弹幕 (简单的基于时间的清理，也可以监听 animationend)
-    // 为了防止数组频繁变动导致性能问题，可以批量清理
-    // 这里简单实现：过滤掉 startTime + duration * 1000 < now 的
-    // 注意：CSS 动画结束后，元素还在 DOM 上，直到被移除
-
-    // 优化：每秒检查一次清理即可，不需要每一帧都检查
-    // 这里每一帧都检查是为了逻辑简单
+    // 清理已完成的弹幕（滚出屏幕后立即销毁）
     this.activeBarrages = this.activeBarrages.filter(b => {
-      return now < b.startTime + b.duration * 1000 + 500; // 多留 500ms 缓冲
+      return now < b.startTime + b.duration * 1000;
     });
 
     // 尝试发射新弹幕
@@ -153,6 +154,18 @@ export class CommentBarrage extends LitElement {
       this.lastSpawnTime = now;
     }
 
+    // 检查是否所有弹幕都已完成
+    if (!this.loop && this.currentIndex >= this.comments.length && this.activeBarrages.length === 0) {
+      console.log('[comment-barrage] All barrages completed');
+      this.stop();
+      // 派发完成事件
+      this.dispatchEvent(new CustomEvent('barrage-complete', {
+        bubbles: true,
+        composed: true
+      }));
+      return;
+    }
+
     this.animationFrameId = requestAnimationFrame(this.loopLogic);
   };
 
@@ -161,7 +174,8 @@ export class CommentBarrage extends LitElement {
       if (this.loop) {
         this.currentIndex = 0;
       } else {
-        return; // 播放完毕
+        // 播放完毕，不再发射新弹幕
+        return;
       }
     }
 
@@ -255,7 +269,7 @@ export class CommentBarrage extends LitElement {
                   : html`<div class="barrage-avatar-placeholder">${getAvatarInitial(item.data.displayName)}</div>`
                 }
               </div>
-              <span class="barrage-content" title="${item.data.content}">${item.data.content}</span>
+              <span class="barrage-content" title="${stripHtml(item.data.content)}">${stripHtml(item.data.content)}</span>
             </div>
           `
         )}
