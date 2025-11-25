@@ -10,7 +10,9 @@ spec:
     - $formkit: "checkbox"
       name: "barrage.xhhao.com/postEnable"
       label: "开启文章评论弹幕"
+
 ---
+
 apiVersion: v1alpha1
 kind: AnnotationSetting
 metadata:
