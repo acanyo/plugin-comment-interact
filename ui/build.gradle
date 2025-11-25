@@ -5,11 +5,23 @@ plugins {
 
 group 'com.xhhao.commentinteract.ui'
 
+tasks.register('buildPackages', PnpmTask) {
+    group = 'build'
+    description = 'Build the packages workspace'
+    args = ['--filter', '@xhhaocom/comment-reference', 'build']
+    dependsOn tasks.named('pnpmInstall')
+    inputs.dir(layout.projectDirectory.dir('../packages/src'))
+    inputs.files(fileTree(
+        dir: layout.projectDirectory.dir('../packages'),
+        includes: ['*.ts', '*.json']))
+    outputs.dir(layout.projectDirectory.dir('../packages/dist'))
+}
+
 tasks.register('pnpmBuild', PnpmTask) {
     group = 'build'
     description = 'Build the UI project using pnpm'
     args = ['build']
-    dependsOn tasks.named('pnpmInstall')
+    dependsOn tasks.named('pnpmInstall'), tasks.named('buildPackages')
     inputs.dir(layout.projectDirectory.dir('src'))
     inputs.files(fileTree(
         dir: layout.projectDirectory,
