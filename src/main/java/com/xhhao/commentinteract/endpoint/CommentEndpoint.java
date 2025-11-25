@@ -1,11 +1,13 @@
 package com.xhhao.commentinteract.endpoint;
 
 import static org.springdoc.core.fn.builders.apiresponse.Builder.responseBuilder;
+import static org.springdoc.core.fn.builders.parameter.Builder.parameterBuilder;
 
 import com.xhhao.commentinteract.model.CommentVo;
 import com.xhhao.commentinteract.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springdoc.core.fn.builders.operation.Builder;
 import org.springdoc.webflux.core.fn.SpringdocRouteBuilder;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -34,6 +36,13 @@ public class CommentEndpoint implements CustomEndpoint {
                     .response(responseBuilder()
                         .implementationArray(CommentVo.class));
             })
+            .GET("comments/{name}", this::getCommentByName, builder -> {
+                builder.operationId("GetCommentByName")
+                    .tag(tag)
+                    .description("根据名称获取单个评论或回复")
+                    .response(responseBuilder()
+                        .implementation(CommentVo.class));
+            })
             .build();
     }
 
@@ -41,6 +50,15 @@ public class CommentEndpoint implements CustomEndpoint {
         return ServerResponse.ok()
             .contentType(MediaType.APPLICATION_JSON)
             .body(commentService.getComment(), CommentVo.class);
+    }
+
+    private Mono<ServerResponse> getCommentByName(ServerRequest request) {
+        String name = request.pathVariable("name");
+        return commentService.getCommentByName(name)
+            .flatMap(commentVo -> ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(commentVo))
+            .switchIfEmpty(ServerResponse.notFound().build());
     }
 
     @Override

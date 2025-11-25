@@ -1,0 +1,159 @@
+import { LitElement, html } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
+import { unsafeHTML } from 'lit/directives/unsafe-html.js';
+import { commentStyles } from './comment-styles';
+import type { CommentData } from './comment-types';
+import { getAvatarInitial, getAvatarUrl } from './comment-avatar';
+import { fetchCommentByName } from './comment-api';
+import { detectDarkTheme, createThemeObserver } from '../utils/theme';
+
+@customElement('comment-reference')
+export class CommentReference extends LitElement {
+  static styles = commentStyles;
+
+  @property({ type: String })
+  name: string = '';
+
+  @state()
+  private commentData: CommentData | null = null;
+
+  @state()
+  private isLoading: boolean = false;
+
+  @state()
+  private error: string = '';
+
+  @state()
+  private isDark: boolean = false;
+
+  @state()
+  private hasFetched: boolean = false;
+
+  @state()
+  private avatarUrl: string | null = null;
+
+  private themeObserver?: MutationObserver;
+
+  connectedCallback() {
+    super.connectedCallback();
+    console.log('Component connected, name:', this.name);
+    this.detectTheme();
+    this.observeTheme();
+    
+    // 只在首次连接时获取数据
+    if (this.name && !this.hasFetched) {
+      console.log('Fetching comment in connectedCallback');
+      this.fetchComment();
+    }
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    console.log('Component disconnected');
+    if (this.themeObserver) {
+      this.themeObserver.disconnect();
+    }
+  }
+
+  private detectTheme() {
+    this.isDark = detectDarkTheme();
+  }
+
+  private observeTheme() {
+    this.themeObserver = createThemeObserver(() => {
+      this.detectTheme();
+    });
+  }
+
+  private async fetchComment() {
+    if (!this.name) {
+      this.error = '缺少评论名称';
+      return;
+    }
+
+    if (this.hasFetched) {
+      return;
+    }
+
+    this.hasFetched = true;
+    this.isLoading = true;
+    this.error = '';
+
+    try {
+      const data = await fetchCommentByName(this.name);
+      if (!data) {
+        this.error = '未找到评论数据';
+        this.commentData = null;
+        this.avatarUrl = null;
+      } else {
+        this.commentData = data;
+        // 异步获取头像 URL
+        this.avatarUrl = await getAvatarUrl(data);
+      }
+    } catch (err) {
+      this.error = err instanceof Error ? err.message : '获取评论失败';
+      this.commentData = null;
+      this.avatarUrl = null;
+      console.error('Error fetching comment:', err);
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  private renderCommentContent() {
+    if (!this.commentData) return '';
+
+    return html`
+      <div class="comment-header">
+        <div class="comment-avatar">
+          ${this.avatarUrl
+            ? html`<img src="${this.avatarUrl}" alt="${this.commentData.displayName}">`
+            : html`<span class="comment-avatar-placeholder">${getAvatarInitial(this.commentData.displayName)}</span>`
+          }
+        </div>
+        <div class="comment-info">
+          <div class="comment-author">${this.commentData.displayName}</div>
+        </div>
+      </div>
+      <div class="comment-content">${unsafeHTML(this.commentData.raw)}</div>
+    `;
+  }
+
+  render() {
+    if (this.isLoading) {
+      return html`
+        <div class="comment-container ${this.isDark ? 'dark' : ''}">
+          <div class="comment-loading">加载中...</div>
+        </div>
+      `;
+    }
+
+    if (this.error) {
+      return html`
+        <div class="comment-container ${this.isDark ? 'dark' : ''}">
+          <div class="comment-error">${this.error}</div>
+        </div>
+      `;
+    }
+
+    if (!this.commentData) {
+      return html`
+        <div class="comment-container ${this.isDark ? 'dark' : ''}">
+          <div class="comment-empty">暂无评论数据</div>
+        </div>
+      `;
+    }
+
+    return html`
+      <div class="comment-container ${this.isDark ? 'dark' : ''}">
+        ${this.renderCommentContent()}
+      </div>
+    `;
+  }
+}
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'comment-reference': CommentReference;
+  }
+}
