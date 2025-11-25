@@ -15,3 +15,13 @@ export interface CommentApiResponse {
   data?: CommentData;
   error?: string;
 }
+
+export interface ListResult<T> {
+  items: T[];
+  total: number;
+  page: number;
+  size: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+  totalPages: number;
+}

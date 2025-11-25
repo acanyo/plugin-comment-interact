@@ -31,6 +31,5 @@ public class CommentInteractPlugin extends BasePlugin {
 
     @Override
     public void stop() {
-        System.out.println("插件停止！");
     }
 }

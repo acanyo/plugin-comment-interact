@@ -10,6 +10,7 @@ import reactor.core.publisher.Mono;
 import run.halo.app.core.extension.content.Post;
 import run.halo.app.theme.ReactivePostContentHandler;
 
+import java.util.Map;
 import java.util.Properties;
 
 @Slf4j
@@ -29,16 +30,19 @@ public class PostContentHandler implements ReactivePostContentHandler {
     private void injectDOM(PostContentContext contentContext) {
         Properties properties = new Properties();
         Post post = contentContext.getPost();
-        properties.setProperty("kind", Post.GVK.kind());
-        properties.setProperty("group", Post.GVK.group());
-        properties.setProperty("name", post.getMetadata().getName());
-        
-        String dom = PROPERTY_PLACEHOLDER_HELPER.replacePlaceholders(
-            "<xhhao-barrage kind=\"${kind}\" group=\"${group}\" name=\"${name}\"></xhhao-barrage>",
-            properties
-        );
-        
-        contentContext.setContent(dom + "\n" + contentContext.getContent());
+        Map<String, String> annotations = post.getMetadata().getAnnotations();
+        if (annotations != null && annotations.containsKey("barrage.xhhao.com/postEnable")) {
+            properties.setProperty("kind", Post.GVK.kind());
+            properties.setProperty("group", Post.GVK.group());
+            properties.setProperty("name", post.getMetadata().getName());
+
+            String dom = PROPERTY_PLACEHOLDER_HELPER.replacePlaceholders(
+                "<xhhao-barrage kind=\"${kind}\" group=\"${group}\" name=\"${name}\"></xhhao-barrage>",
+                properties
+            );
+
+            contentContext.setContent(dom + "\n" + contentContext.getContent());
+        }
     }
 }
 

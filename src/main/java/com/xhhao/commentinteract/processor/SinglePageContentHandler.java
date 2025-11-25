@@ -11,6 +11,7 @@ import run.halo.app.core.extension.content.Post;
 import run.halo.app.core.extension.content.SinglePage;
 import run.halo.app.theme.ReactivePostContentHandler;
 import run.halo.app.theme.ReactiveSinglePageContentHandler;
+import java.util.Map;
 import java.util.Properties;
 
 @Slf4j
@@ -28,16 +29,19 @@ public class SinglePageContentHandler implements ReactiveSinglePageContentHandle
     private void injectDOM(SinglePageContentContext singlePageContent) {
         Properties properties = new Properties();
         SinglePage singlePage = singlePageContent.getSinglePage();
-        properties.setProperty("kind", SinglePage.GVK.kind());
-        properties.setProperty("group", SinglePage.GVK.group());
-        properties.setProperty("name", singlePage.getMetadata().getName());
+        Map<String, String> annotations = singlePage.getMetadata().getAnnotations();
+        if (annotations != null && annotations.containsKey("barrage.xhhao.com/pageEnable")) {
+            properties.setProperty("kind", SinglePage.GVK.kind());
+            properties.setProperty("group", SinglePage.GVK.group());
+            properties.setProperty("name", singlePage.getMetadata().getName());
 
-        String dom = PROPERTY_PLACEHOLDER_HELPER.replacePlaceholders(
-            "<xhhao-barrage kind=\"${kind}\" group=\"${group}\" name=\"${name}\"></xhhao-barrage>",
-            properties
-        );
+            String dom = PROPERTY_PLACEHOLDER_HELPER.replacePlaceholders(
+                "<xhhao-barrage kind=\"${kind}\" group=\"${group}\" name=\"${name}\"></xhhao-barrage>",
+                properties
+            );
+            singlePageContent.setContent(dom + "\n" + singlePageContent.getContent());
+        }
 
-        singlePageContent.setContent(dom + "\n" + singlePageContent.getContent());
     }
 
 

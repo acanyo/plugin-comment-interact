@@ -107,8 +107,8 @@ public class CommentEndpoint implements CustomEndpoint {
     private Mono<ServerResponse> listCommentList(ServerRequest request) {
         // 获取分页参数
         int page = request.queryParam("page").map(Integer::parseInt).orElse(1);
-        int size = request.queryParam("size").map(Integer::parseInt).orElse(10);
-        int replySize = request.queryParam("replySize").map(Integer::parseInt).orElse(10);
+        int size = request.queryParam("size").map(Integer::parseInt).orElse(100);
+        int replySize = request.queryParam("replySize").map(Integer::parseInt).orElse(100);
 
         // 构建 Ref（如果提供了参数）
         Ref ref = null;

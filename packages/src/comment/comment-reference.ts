@@ -36,13 +36,11 @@ export class CommentReference extends LitElement {
 
   connectedCallback() {
     super.connectedCallback();
-    console.log('Component connected, name:', this.name);
     this.detectTheme();
     this.observeTheme();
-    
+
     // 只在首次连接时获取数据
     if (this.name && !this.hasFetched) {
-      console.log('Fetching comment in connectedCallback');
       this.fetchComment();
     }
   }
