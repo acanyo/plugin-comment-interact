@@ -12,6 +12,7 @@ import reactor.core.publisher.Mono;
 import run.halo.app.core.extension.User;
 import run.halo.app.core.user.service.UserService;
 import run.halo.app.extension.ListOptions;
+import run.halo.app.extension.ListResult;
 import run.halo.app.extension.ReactiveExtensionClient;
 import run.halo.app.extension.index.query.QueryFactory;
 import run.halo.app.extension.router.selector.FieldSelector;
@@ -36,6 +37,23 @@ public class CommentServiceImpl implements CommentService {
             .map(this::fromReply);
 
         return Flux.concat(commentFlux, replyFlux);
+    }
+
+    @Override
+    public Mono<ListResult<CommentVo>> getComments(int page, int size) {
+        return getComment()
+            .collectList()
+            .map(list -> {
+                int total = list.size();
+                int fromIndex = (page - 1) * size;
+                int toIndex = Math.min(fromIndex + size, total);
+                
+                var items = fromIndex >= total 
+                    ? java.util.List.<CommentVo>of() 
+                    : list.subList(fromIndex, toIndex);
+                
+                return new ListResult<>(page, size, total, items);
+            });
     }
 
     @Override

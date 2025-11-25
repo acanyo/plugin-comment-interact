@@ -4,6 +4,8 @@ import static org.springdoc.core.fn.builders.apiresponse.Builder.responseBuilder
 import static org.springdoc.core.fn.builders.parameter.Builder.parameterBuilder;
 
 import com.xhhao.commentinteract.model.CommentVo;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import run.halo.app.extension.ListResult;
 import com.xhhao.commentinteract.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,12 +31,22 @@ public class CommentEndpoint implements CustomEndpoint {
     public RouterFunction<ServerResponse> endpoint() {
         final var tag = "api.comment.interact.xhhao.com/v1alpha1/Comment";
         return SpringdocRouteBuilder.route()
-            .GET("comments", this::listComments, builder -> {
+            .GET("allComments", this::listComments, builder -> {
                 builder.operationId("ListComments")
                     .tag(tag)
-                    .description("获取评论和回复列表")
+                    .description("分页获取评论和回复列表")
+                    .parameter(parameterBuilder()
+                        .name("page")
+                        .in(ParameterIn.QUERY)
+                        .description("页码，从1开始")
+                        .required(false))
+                    .parameter(parameterBuilder()
+                        .name("size")
+                        .in(ParameterIn.QUERY)
+                        .description("每页数量")
+                        .required(false))
                     .response(responseBuilder()
-                        .implementationArray(CommentVo.class));
+                        .implementation(ListResult.class));
             })
             .GET("comments/{name}", this::getCommentByName, builder -> {
                 builder.operationId("GetCommentByName")
@@ -46,10 +58,19 @@ public class CommentEndpoint implements CustomEndpoint {
             .build();
     }
 
-    private Mono<ServerResponse> listComments(ServerRequest request) {
+    private Mono<ServerResponse> listAllComments(ServerRequest request) {
         return ServerResponse.ok()
             .contentType(MediaType.APPLICATION_JSON)
             .body(commentService.getComment(), CommentVo.class);
+    }
+
+    private Mono<ServerResponse> listComments(ServerRequest request) {
+        int page = request.queryParam("page").map(Integer::parseInt).orElse(1);
+        int size = request.queryParam("size").map(Integer::parseInt).orElse(12);
+        return commentService.getComments(page, size)
+            .flatMap(result -> ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(result));
     }
 
     private Mono<ServerResponse> getCommentByName(ServerRequest request) {

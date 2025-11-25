@@ -1,8 +1,13 @@
 package com.xhhao.commentinteract;
 
+import com.xhhao.commentinteract.extension.Comment;
 import org.springframework.stereotype.Component;
+import run.halo.app.extension.SchemeManager;
+import run.halo.app.extension.index.IndexSpec;
 import run.halo.app.plugin.BasePlugin;
 import run.halo.app.plugin.PluginContext;
+
+import static run.halo.app.extension.index.IndexAttributeFactory.simpleAttribute;
 
 /**
  * <p>Plugin main class to manage the lifecycle of the plugin.</p>
@@ -14,14 +19,33 @@ import run.halo.app.plugin.PluginContext;
  */
 @Component
 public class CommentInteractPlugin extends BasePlugin {
+    private final SchemeManager schemeManager;
 
-    public CommentInteractPlugin(PluginContext pluginContext) {
+    public CommentInteractPlugin(PluginContext pluginContext, SchemeManager schemeManager) {
         super(pluginContext);
+        this.schemeManager = schemeManager;
     }
 
     @Override
     public void start() {
-        System.out.println("插件启动成功！");
+        schemeManager.register(Comment.class, indexSpecs -> {
+            indexSpecs.add(new IndexSpec()
+                .setName("spec.content")
+                .setIndexFunc(simpleAttribute(
+                    Comment.class, comment -> comment.getSpec().getContent())));
+            indexSpecs.add(new IndexSpec()
+                .setName("spec.raw")
+                .setIndexFunc(simpleAttribute(
+                    Comment.class, comment -> comment.getSpec().getRaw())));
+            indexSpecs.add(new IndexSpec()
+                .setName("spec.owner.displayName")
+                .setIndexFunc(simpleAttribute(
+                    Comment.class, comment -> comment.getSpec().getOwner().getDisplayName())));
+            indexSpecs.add(new IndexSpec()
+                .setName("spec.owner.name")
+                .setIndexFunc(simpleAttribute(
+                    Comment.class, comment -> comment.getSpec().getOwner().getName())));
+        });
     }
 
     @Override
