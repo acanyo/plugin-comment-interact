@@ -1,4 +1,4 @@
-package com.xhhao.commentinteract;
+package com.xhhao.commentinteract.processor;
 
 import java.util.Properties;
 import lombok.RequiredArgsConstructor;

@@ -16,11 +16,12 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import run.halo.app.core.user.service.UserService;
+import org.springframework.web.reactive.function.client.WebClient;
+import com.fasterxml.jackson.databind.JsonNode;
 import run.halo.app.extension.ListOptions;
 import run.halo.app.extension.ListResult;
 import run.halo.app.extension.ReactiveExtensionClient;
 import run.halo.app.extension.index.query.QueryFactory;
-import run.halo.app.extension.router.selector.FieldSelector;
 
 @Service
 @RequiredArgsConstructor
@@ -28,18 +29,27 @@ public class CommentServiceImpl implements CommentService {
     private final ReactiveExtensionClient client;
     private final UserService userSvc;
 
-    private ListOptions buildListOptions(String keyword) {
+    private ListOptions buildListOptions(String keyword, int flag) {
         var listOptions = new ListOptions();
         var builder = ListOptions.builder(listOptions);
         builder.andQuery(QueryFactory.isNull("metadata.deletionTimestamp"));
         Optional.ofNullable(keyword)
             .filter(StringUtils::isNotBlank)
-            .ifPresent(k -> builder.andQuery(or(
-                contains("spec.content", k),
-                contains("spec.raw", k)
-                // contains("spec.owner.displayName", k),
-                // contains("spec.owner.name", k)
-            )));
+            .ifPresent(k -> {
+                // 注意：spec.owner 索引存储的是 "kind:name" 格式的字符串
+                // 如果要按 owner 精确查询，使用: equal("spec.owner", "Email:user@example.com")
+                if (flag == 0) {
+                    builder.andQuery(or(
+                        contains("spec.raw", k),
+                        contains("spec.owner", k)
+                    ));
+                } else {
+                    builder.andQuery(or(
+                        contains("spec.commentName", k),
+                        contains("spec.owner", k)
+                    ));
+                }
+            });
         return builder.build();
     }
 
@@ -49,10 +59,10 @@ public class CommentServiceImpl implements CommentService {
     }
 
     public Flux<CommentVo> getComment(String keyword) {
-        Flux<CommentVo> commentFlux = client.listAll(Comment.class, buildListOptions(keyword), Sort.by(desc("metadata.creationTimestamp"),desc("metadata.name")))
+        Flux<CommentVo> commentFlux = client.listAll(Comment.class, buildListOptions(keyword, 0), Sort.by(desc("spec.creationTime"),desc("metadata.name")))
             .map(this::fromComment);
 
-        Flux<CommentVo> replyFlux = client.listAll(Reply.class, buildListOptions(keyword),Sort.by(desc("metadata.creationTimestamp"),desc("metadata.name")))
+        Flux<CommentVo> replyFlux = client.listAll(Reply.class, buildListOptions(keyword, 1),Sort.by(desc("spec.creationTime"),desc("metadata.name")))
             .map(this::fromReply);
 
         return Flux.concat(commentFlux, replyFlux);
@@ -139,4 +149,6 @@ public class CommentServiceImpl implements CommentService {
             vo.type()
         );
     }
+
+
 }

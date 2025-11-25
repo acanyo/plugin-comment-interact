@@ -1,0 +1,27 @@
+apiVersion: v1alpha1
+kind: AnnotationSetting
+metadata:
+  name: barrage-annotation-setting-post
+spec:
+  targetRef:
+    group: content.halo.run
+    kind: Post
+  formSchema:
+    - $formkit: "checkbox"
+      name: "barrage.xhhao.com/postEnable"
+      label: "开启文章评论弹幕"
+
+---
+
+apiVersion: v1alpha1
+kind: AnnotationSetting
+metadata:
+  name: barrage-annotation-setting-page
+spec:
+  targetRef:
+    group: content.halo.run
+    kind: SinglePage
+  formSchema:
+    - $formkit: "checkbox"
+      name: "barrage.xhhao.com/pageEnable"
+      label: "开启页面评论弹幕"
