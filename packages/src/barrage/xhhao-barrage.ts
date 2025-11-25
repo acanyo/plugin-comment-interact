@@ -58,7 +58,12 @@ export class XhhaoBarrage extends LitElement {
   @property({ type: Number })
   rows: number = 8;
 
-  @property({ type: Boolean })
+  @property({
+    type: Boolean,
+    converter: (value) => {
+      return value !== null && value !== 'false';
+    }
+  })
   loop: boolean = false;
 
   @state()
