@@ -2,9 +2,12 @@
 import { ref, onMounted } from 'vue'
 import '@xhhaocom/comment-reference'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   name: string
-}>()
+  type?: 'reference' | 'conversation'
+}>(), {
+  type: 'reference'
+})
 
 const loaded = ref(false)
 
@@ -15,7 +18,8 @@ onMounted(() => {
 
 <template>
   <div v-if="loaded" class="comment-render-wrapper">
-    <comment-reference :name="name"></comment-reference>
+    <comment-conversation v-if="props.type === 'conversation'" :name="name"></comment-conversation>
+    <comment-reference v-else :name="name"></comment-reference>
   </div>
   <div v-else class="comment-loading">加载中...</div>
 </template>

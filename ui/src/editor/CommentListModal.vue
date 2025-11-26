@@ -11,6 +11,12 @@ import {
 } from '@halo-dev/components'
 import { commentApiClient, type CommentVo, type CommentListResult } from '@/api/comment'
 
+const props = withDefaults(defineProps<{
+  type?: 'reference' | 'conversation'
+}>(), {
+  type: 'reference'
+})
+
 const emit = defineEmits<{
   (event: 'close'): void
   (event: 'select', value: string[]): void
@@ -42,7 +48,10 @@ async function fetchComments() {
   isFetching.value = true
   isLoading.value = commentList.value.length === 0
   try {
-    const { data } = await commentApiClient.listComments(page.value, pageSize.value, keyword.value)
+    const { data } = props.type === 'conversation'
+      ? await commentApiClient.listHaloComments(page.value, pageSize.value, keyword.value)
+      : await commentApiClient.listComments(page.value, pageSize.value, keyword.value)
+
     commentList.value = data.items || []
     total.value = data.total || 0
   } catch (error) {

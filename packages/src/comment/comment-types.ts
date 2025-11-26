@@ -20,6 +20,8 @@ export interface CommentData {
   refPost?: string;
   refUrl?: string;
   type?: string;
+  quoteReply?: string;
+  creationTime?: string;
 }
 
 export interface CommentApiResponse {

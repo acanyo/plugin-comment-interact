@@ -5,6 +5,7 @@ import static org.springdoc.core.fn.builders.apiresponse.Builder.responseBuilder
 import static org.springdoc.core.fn.builders.parameter.Builder.parameterBuilder;
 
 import com.xhhao.commentinteract.model.CommentVo;
+import com.xhhao.commentinteract.model.CommentWithReplyVo;
 import com.xhhao.commentinteract.service.CommentPublicQueryService;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import run.halo.app.extension.ListResult;
@@ -14,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springdoc.webflux.core.fn.SpringdocRouteBuilder;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.server.RequestPredicates;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -101,6 +103,23 @@ public class CommentEndpoint implements CustomEndpoint {
                     .response(responseBuilder()
                         .implementation(CommentVo.class));
             })
+            .GET("comments/{name}/replies", this::getCommentWithReplies, builder -> {
+                builder.operationId("GetCommentWithReplies")
+                    .tag(tag)
+                    .description("根据主评论名称获取评论及其回复")
+                    .parameter(parameterBuilder()
+                        .name("name")
+                        .in(ParameterIn.PATH)
+                        .description("主评论名称")
+                        .required(true))
+                    .parameter(parameterBuilder()
+                        .name("replySize")
+                        .in(ParameterIn.QUERY)
+                        .description("回复数量，默认100")
+                        .required(false))
+                    .response(responseBuilder()
+                        .implementation(CommentWithReplyVo.class));
+            })
             .build();
     }
 
@@ -145,6 +164,16 @@ public class CommentEndpoint implements CustomEndpoint {
             .flatMap(commentVo -> ServerResponse.ok()
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(commentVo))
+            .switchIfEmpty(ServerResponse.notFound().build());
+    }
+
+    private Mono<ServerResponse> getCommentWithReplies(ServerRequest request) {
+        String name = request.pathVariable("name");
+        int replySize = request.queryParam("replySize").map(Integer::parseInt).orElse(100);
+        return commentPublicQueryService.getCommentWithReplies(name, replySize)
+            .flatMap(result -> ServerResponse.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(result))
             .switchIfEmpty(ServerResponse.notFound().build());
     }
 

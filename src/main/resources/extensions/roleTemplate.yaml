@@ -11,5 +11,5 @@ metadata:
     rbac.authorization.halo.run/display-name: "dataStatistics Plugin Public APIs"
 rules:
   - apiGroups: [ "api.comment.interact.xhhao.com" ]
-    resources: ["comments"]
+    resources: ["comments","commentList","replies","comments/replies"]
     verbs: [ "get", "list" ]

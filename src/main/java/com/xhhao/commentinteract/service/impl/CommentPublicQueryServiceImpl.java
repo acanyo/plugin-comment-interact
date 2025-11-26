@@ -282,4 +282,18 @@ public class CommentPublicQueryServiceImpl implements CommentPublicQueryService 
     int sizeNullSafe(Integer size) {
         return defaultIfNull(size, 100);
     }
+
+    @Override
+    public Mono<CommentWithReplyVo> getCommentWithReplies(String commentName, int replySize) {
+        // 获取主评论
+        return client.fetch(Comment.class, commentName)
+            .flatMap(this::toCommentVo)
+            .flatMap(commentVo -> {
+                // 获取回复列表
+                return listReply(commentName, 1, replySize)
+                    .map(replyList -> CommentWithReplyVo.from(commentVo)
+                        .setReplies(replyList)
+                    );
+            });
+    }
 }
