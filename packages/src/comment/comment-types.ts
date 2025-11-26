@@ -9,6 +9,7 @@ export interface CommentData {
   kind: string;
   name: string;
   email?: string;
+  emailHash?: string;
   displayName: string;
   content: string;
   raw: string;

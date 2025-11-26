@@ -35,7 +35,7 @@ public class PostContentHandler implements ReactivePostContentHandler {
         Properties properties = new Properties();
         Post post = contentContext.getPost();
         Map<String, String> annotations = post.getMetadata().getAnnotations();
-        if (annotations != null && annotations.containsKey("barrage.xhhao.com/postEnable")) {
+        if (annotations != null && annotations.containsKey("barrage.xhhao.com/postEnable") && annotations.get("barrage.xhhao.com/postEnable").equals("true")) {
         properties.setProperty("kind", Post.GVK.kind());
         properties.setProperty("group", Post.GVK.group());
         properties.setProperty("name", post.getMetadata().getName());

@@ -53,12 +53,27 @@ interface RawReply {
   spec: RawSpec;
 }
 
+interface RawOwnerInfo {
+  kind: string;
+  name: string;
+  displayName: string;
+  avatar?: string;
+  email?: string;
+}
+
 interface RawComment {
   metadata: RawMetadata;
   spec: RawSpec;
+  owner?: RawOwnerInfo;
   replies?: {
     items: RawReply[];
   };
+}
+
+interface RawReply {
+  metadata: RawMetadata;
+  spec: RawSpec;
+  owner?: RawOwnerInfo;
 }
 
 export async function fetchCommentList(params: CommentListParams): Promise<CommentData[]> {
@@ -106,7 +121,7 @@ export interface CommentWithReplies {
 }
 
 export async function fetchCommentWithReplies(name: string): Promise<CommentWithReplies | null> {
-  const url = `http://localhost:8090/apis/api.comment.interact.xhhao.com/v1alpha1/comments/${encodeURIComponent(name)}/replies`;
+  const url = `/apis/api.comment.interact.xhhao.com/v1alpha1/comments/${encodeURIComponent(name)}/replies?replySize=100`;
 
   const response = await fetch(url);
   if (!response.ok) {
@@ -118,7 +133,6 @@ export async function fetchCommentWithReplies(name: string): Promise<CommentWith
   const comment = mapToCommentData(result);
   const replies: CommentData[] = [];
 
-  // Create a map for quick lookup of all comments/replies by name
   const commentMap = new Map<string, CommentData>();
   commentMap.set(comment.name, comment);
 
@@ -173,17 +187,16 @@ function mapToCommentData(item: RawComment | RawReply): CommentData {
   return {
     kind: 'Comment',
     name: item.metadata.name,
-    displayName: item.spec.owner.displayName,
+    displayName: item.owner?.displayName || item.spec.owner.displayName,
     content: item.spec.content,
     raw: item.spec.raw,
     metadataName: item.metadata.name,
     approved: item.spec.approved,
-    userAvatar: hash ? `https://weavatar.com/avatar/${hash}` : undefined,
-    // @ts-ignore
+    userAvatar: item.owner?.avatar || undefined,
+    email: item.owner?.email || (item.spec.owner as any).email,
+    emailHash: hash,
     quoteReply: (item.spec as any).quoteReply,
-    // @ts-ignore
     commentName: (item.spec as any).commentName,
-    // Extract creation time
     creationTime: (item.spec as any).creationTime || (item.metadata as any).creationTimestamp
   };
 }

@@ -1,10 +1,10 @@
-# comment-interact
+# Comment Interact
 
-comment-interact - Halo 插件
+Halo 评论互动增强插件
 
 ## 简介
 
-这是一个基于 Halo 的插件项目。
+一款 Halo 编辑器扩展插件，支持在文章正文中以卡片或对话气泡形式引用和展示评论及其回复上下文，增强内容互动体验。
 
 ## 开发环境
 

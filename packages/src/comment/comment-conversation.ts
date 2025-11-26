@@ -1,6 +1,7 @@
 import { LitElement, html, nothing } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
+import { getAvatarUrl } from './comment-avatar';
 import { fetchCommentWithReplies } from './comment-api';
 import type { CommentWithReplies } from './comment-api';
 import type { CommentData } from './comment-types';
@@ -12,6 +13,12 @@ export class CommentConversation extends LitElement {
 
   @property({ type: String })
   name = '';
+
+  @property({ type: String, attribute: 'user-name' })
+  userName = '';
+
+  @property({ type: String, attribute: 'user-avatar' })
+  userAvatar = '';
 
   @state()
   private _data: CommentWithReplies | null = null;
@@ -34,7 +41,14 @@ export class CommentConversation extends LitElement {
     this._loading = true;
     this._error = null;
     try {
-      this._data = await fetchCommentWithReplies(this.name);
+      const data = await fetchCommentWithReplies(this.name);
+      if (data) {
+        data.comment.userAvatar = await getAvatarUrl(data.comment) || undefined;
+        for (const reply of data.replies) {
+          reply.userAvatar = await getAvatarUrl(reply) || undefined;
+        }
+      }
+      this._data = data;
     } catch (e) {
       this._error = (e as Error).message;
     } finally {
@@ -57,7 +71,6 @@ export class CommentConversation extends LitElement {
 
     const { comment, replies } = this._data;
 
-    // Sort all messages by creation time
     const allMessages = [comment, ...replies].sort((a, b) => {
       const timeA = new Date(a.creationTime || 0).getTime();
       const timeB = new Date(b.creationTime || 0).getTime();
@@ -66,7 +79,6 @@ export class CommentConversation extends LitElement {
 
     let lastDateStr = '';
 
-    // Get the main comment author identifier (use displayName and userAvatar as identifier)
     const mainAuthorName = comment.displayName;
     const mainAuthorAvatar = comment.userAvatar;
 
@@ -95,11 +107,16 @@ export class CommentConversation extends LitElement {
   private _renderMessage(comment: CommentData, isOwner: boolean) {
     const timeStr = this._formatTime(new Date(comment.creationTime || Date.now()));
 
+    let avatarUrl = comment.userAvatar;
+    if (this.userName && this.userAvatar && comment.displayName === this.userName) {
+      avatarUrl = this.userAvatar;
+    }
+
     return html`
       <div class="message-item">
         <div class="avatar">
-          ${comment.userAvatar
-            ? html`<img src="${comment.userAvatar}" alt="${comment.displayName}" loading="lazy" />`
+          ${avatarUrl
+            ? html`<img src="${avatarUrl}" alt="${comment.displayName}" loading="lazy" />`
             : html`<div class="avatar-placeholder">${comment.displayName.charAt(0).toUpperCase()}</div>`
           }
         </div>

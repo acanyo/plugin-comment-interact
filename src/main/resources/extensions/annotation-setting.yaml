@@ -10,6 +10,8 @@ spec:
     - $formkit: "checkbox"
       name: "barrage.xhhao.com/postEnable"
       label: "开启文章评论弹幕"
+      on-value: "true"
+      off-value: "false"
 
 ---
 
@@ -25,3 +27,5 @@ spec:
     - $formkit: "checkbox"
       name: "barrage.xhhao.com/pageEnable"
       label: "开启页面评论弹幕"
+      on-value: "true"
+      off-value: "false"
