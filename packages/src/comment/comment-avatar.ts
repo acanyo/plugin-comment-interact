@@ -47,6 +47,42 @@ function canDisplayImage(dataUrl: string): Promise<boolean> {
   });
 }
 
+// 缓存配置
+const CACHE_DURATION = 7 * 24 * 60 * 60 * 1000; // 7天失效
+const MAX_CACHE_SIZE = 1000; // 最大缓存条数
+
+interface CacheEntry {
+  url: string;
+  timestamp: number;
+}
+
+// 全局头像缓存
+const avatarCache = new Map<string, CacheEntry>();
+
+function getCachedUrl(key: string): string | null {
+  const entry = avatarCache.get(key);
+  if (!entry) return null;
+
+  if (Date.now() - entry.timestamp > CACHE_DURATION) {
+    avatarCache.delete(key);
+    return null;
+  }
+
+  return entry.url;
+}
+
+function setCachedUrl(key: string, url: string) {
+  if (avatarCache.size >= MAX_CACHE_SIZE) {
+    const firstKey = avatarCache.keys().next().value;
+    if (firstKey) avatarCache.delete(firstKey);
+  }
+
+  avatarCache.set(key, {
+    url,
+    timestamp: Date.now()
+  });
+}
+
 /**
  * 计算字符串的 SHA256 哈希值
  */
@@ -58,26 +94,46 @@ async function sha256(text: string): Promise<string> {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+const pendingRequests = new Map<string, Promise<string | null>>();
+
 export async function getAvatarUrl(comment: CommentData | null): Promise<string | null> {
   if (!comment) return null;
-  if (comment.userAvatar) {
-    return comment.userAvatar;
+
+  const cacheKey = comment.email?.trim().toLowerCase() || comment.name;
+  if (!cacheKey) return comment.userAvatar || null;
+
+  const cached = getCachedUrl(cacheKey);
+  if (cached) return cached;
+
+  if (pendingRequests.has(cacheKey)) {
+    return pendingRequests.get(cacheKey)!;
   }
-  if (comment.email) {
-    const email = comment.email.trim().toLowerCase();
-    if (email) {
-      try {
-        const hash = await sha256(email);
-        const format = await detectImageFormat();
-        console.log('Avatar format detected:', format);
-        console.log('Avatar URL:', `https://weavatar.com/avatar/${hash}.${format}`);
-        return `https://weavatar.com/avatar/${hash}.${format}`;
-      } catch (error) {
-        console.error('Failed to generate avatar URL:', error);
-        return null;
+  const task = (async () => {
+    if (comment.userAvatar) {
+      setCachedUrl(cacheKey, comment.userAvatar);
+      return comment.userAvatar;
+    }
+    if (comment.email) {
+      const email = comment.email.trim().toLowerCase();
+      if (email) {
+        try {
+          const hash = await sha256(email);
+          const format = await detectImageFormat();
+          const url = `https://weavatar.com/avatar/${hash}.${format}`;
+          setCachedUrl(cacheKey, url);
+          return url;
+        } catch (error) {
+          console.error('Failed to generate avatar URL:', error);
+          return null;
+        }
       }
     }
-  }
+    return null;
+  })();
+  pendingRequests.set(cacheKey, task);
+  task.finally(() => {
+    pendingRequests.delete(cacheKey);
+  });
 
-  return null;
+  return task;
 }

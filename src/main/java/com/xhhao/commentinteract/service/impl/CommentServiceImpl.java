@@ -128,7 +128,7 @@ public class CommentServiceImpl implements CommentService {
             .defaultIfEmpty(buildVo(Reply.KIND, metadataName, reply.getSpec(), commentName, null, null, null));
     }
     @SuppressWarnings("unchecked")
-    Mono<Extension> getCommentSubject(Ref ref) {
+    public Mono<Extension> getCommentSubject(Ref ref) {
         return extensionGetter.getExtensions(CommentSubject.class)
             .filter(subject -> subject.supports(ref))
             .next()
@@ -183,8 +183,8 @@ public class CommentServiceImpl implements CommentService {
             vo.type()
         );
     }
-    
-    private String extractRefPost(Extension subject) {
+
+    public String extractRefPost(Extension subject) {
         return Optional.ofNullable(subject)
             .filter(s -> s.getMetadata() != null)
             .map(s -> {
@@ -204,7 +204,7 @@ public class CommentServiceImpl implements CommentService {
             .orElse(null);
     }
     
-    private String extractRefUrl(Extension subject) {
+    public String extractRefUrl(Extension subject) {
         return Optional.ofNullable(subject)
             .map(s -> {
                 try {

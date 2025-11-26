@@ -51,6 +51,7 @@ interface RawMetadata {
 interface RawReply {
   metadata: RawMetadata;
   spec: RawSpec;
+  owner?: RawOwnerInfo;
 }
 
 interface RawOwnerInfo {
@@ -65,15 +66,11 @@ interface RawComment {
   metadata: RawMetadata;
   spec: RawSpec;
   owner?: RawOwnerInfo;
+  refPost?: string;
+  refUrl?: string;
   replies?: {
     items: RawReply[];
   };
-}
-
-interface RawReply {
-  metadata: RawMetadata;
-  spec: RawSpec;
-  owner?: RawOwnerInfo;
 }
 
 export async function fetchCommentList(params: CommentListParams): Promise<CommentData[]> {
@@ -100,10 +97,7 @@ export async function fetchCommentList(params: CommentListParams): Promise<Comme
     const rawItems = result.items as RawComment[];
 
     for (const item of rawItems) {
-      // Main comment
       comments.push(mapToCommentData(item));
-
-      // Replies
       if (item.replies?.items) {
         for (const reply of item.replies.items) {
           comments.push(mapToCommentData(reply));
@@ -175,6 +169,7 @@ export async function fetchCommentWithReplies(name: string): Promise<CommentWith
 
 function mapToCommentData(item: RawComment | RawReply): CommentData {
   const hash = item.spec.owner.annotations?.['email-hash'];
+  const rawComment = item as RawComment;
   return {
     kind: 'Comment',
     name: item.metadata.name,
@@ -188,6 +183,8 @@ function mapToCommentData(item: RawComment | RawReply): CommentData {
     emailHash: hash,
     quoteReply: (item.spec as any).quoteReply,
     commentName: (item.spec as any).commentName,
-    creationTime: (item.spec as any).creationTime || (item.metadata as any).creationTimestamp
+    creationTime: (item.spec as any).creationTime || (item.metadata as any).creationTimestamp,
+    refPost: rawComment.refPost,
+    refUrl: rawComment.refUrl
   };
 }

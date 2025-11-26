@@ -31,7 +31,8 @@ public class CommentsVo implements ExtensionVoOperator {
 
     @Schema(requiredMode = REQUIRED)
     private OwnerInfo owner;
-
+    String refPost;
+    String refUrl;
 
     /**
      * Convert {@link Comment} to {@link CommentsVo}.

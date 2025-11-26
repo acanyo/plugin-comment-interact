@@ -47,6 +47,7 @@ import static run.halo.app.extension.index.query.QueryFactory.or;
 public class CommentPublicQueryServiceImpl implements CommentPublicQueryService {
     private final ReactiveExtensionClient client;
     private final UserService userService;
+    private final CommentServiceImpl commentSvc;
     @Override
     public Mono<ListResult<CommentsVo>> list(Ref ref, PageRequest pageParam) {
         var pageRequest = Optional.ofNullable(pageParam)
@@ -111,14 +112,29 @@ public class CommentPublicQueryServiceImpl implements CommentPublicQueryService 
     }
     Mono<CommentsVo> toCommentVo(Comment comment) {
         Comment.CommentOwner owner = comment.getSpec().getOwner();
-        return Mono.just(CommentsVo.from(comment))
-            .flatMap(commentVo -> getOwnerInfo(owner)
-                .doOnNext(commentVo::setOwner)
-                .thenReturn(commentVo)
+        return commentSvc.getCommentSubject(comment.getSpec().getSubjectRef())
+            .flatMap(subject -> {
+                String refPost = commentSvc.extractRefPost(subject);
+                String refUrl = commentSvc.extractRefUrl(subject);
+                return Mono.just(CommentsVo.from(comment))
+                    .doOnNext(commentVo -> {
+                        commentVo.setRefPost(refPost);
+                        commentVo.setRefUrl(refUrl);
+                    })
+                    .flatMap(commentVo -> getOwnerInfo(owner)
+                        .doOnNext(commentVo::setOwner)
+                        .thenReturn(commentVo)
+                    );
+            })
+            .switchIfEmpty(
+                Mono.just(CommentsVo.from(comment))
+                    .flatMap(commentVo -> getOwnerInfo(owner)
+                        .doOnNext(commentVo::setOwner)
+                        .thenReturn(commentVo)
+                    )
             )
             .flatMap(this::filterCommentSensitiveData);
     }
-
     Mono<ReplyVo> toReplyVo(Reply reply) {
         Comment.CommentOwner owner = reply.getSpec().getOwner();
         return Mono.just(ReplyVo.from(reply))
@@ -142,7 +158,6 @@ public class CommentPublicQueryServiceImpl implements CommentPublicQueryService 
 
         replyVo.getSpec().setIpAddress("");
         var specOwner = replyVo.getSpec().getOwner();
-        specOwner.setName("");
         var email = owner.getEmail();
         if (StringUtils.isNotBlank(email)) {
             var emailHash = Hashing.sha256()
@@ -175,13 +190,13 @@ public class CommentPublicQueryServiceImpl implements CommentPublicQueryService 
             .displayName(owner.getDisplayName())
             .avatar(owner.getAvatar())
             .name(owner.getName())
+            .email(owner.getEmail())
             .email(owner.getName())
             .kind(owner.getKind())
             .build());
 
         commentVo.getSpec().setIpAddress("");
         var specOwner = commentVo.getSpec().getOwner();
-        specOwner.setName("");
         var email = owner.getEmail();
         if (StringUtils.isNotBlank(email)) {
             var emailHash = Hashing.sha256()
@@ -235,7 +250,6 @@ public class CommentPublicQueryServiceImpl implements CommentPublicQueryService 
                         ownerIdentity(owner.getKind(), owner.getName()),
                         ownerIdentity(User.KIND, username)
                     );
-                    // 移除权限检查，只检查是否被删除和是否是评论所有者
                     boolean hasPermission = (!commentHidden) || isCommentOwner;
                     if (ExtensionUtil.isDeleted(comment) || !hasPermission) {
                         return Mono.error(new org.springframework.web.server.ServerWebInputException(
@@ -255,13 +269,11 @@ public class CommentPublicQueryServiceImpl implements CommentPublicQueryService 
                 if (isAnonymous) {
                     builder.andQuery(visibleQuery);
                 } else if (!(commentHidden && isCommentOwner)) {
-                    // 登录用户可以看到自己的评论或公开的评论
                     builder.andQuery(or(
                         equal("spec.owner", ownerIdentity(User.KIND, username)),
                         visibleQuery
                     ));
                 }
-                // View all replies if the user is not an anonymous user or is the comment owner.
                 return Mono.just(builder);
             });
     }

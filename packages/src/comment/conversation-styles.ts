@@ -61,6 +61,31 @@ export const conversationStyles = css`
     transition: all 0.3s ease;
   }
 
+  /* Source Info */
+  .conversation-source {
+    font-size: 0.75rem;
+    color: var(--cc-text-muted);
+    padding: 0.5rem 0.75rem;
+    background: var(--cc-bubble-bg);
+    border-radius: 8px;
+    border: 1px solid var(--cc-bubble-border);
+    margin-bottom: 0.25rem;
+  }
+
+  .conversation-source a {
+    color: var(--cc-primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .conversation-source a:hover {
+    color: #2563eb;
+    text-decoration: underline;
+  }
+
   /* Date Divider */
   .date-divider {
     text-align: center;
