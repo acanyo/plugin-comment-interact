@@ -38,16 +38,13 @@ export class CommentReference extends LitElement {
     super.connectedCallback();
     this.detectTheme();
     this.observeTheme();
-
-    // 只在首次连接时获取数据
-    if (this.name && !this.hasFetched) {
+    if (this.name && !this.commentData && !this.isLoading) {
       this.fetchComment();
     }
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
-    console.log('Component disconnected');
     if (this.themeObserver) {
       this.themeObserver.disconnect();
     }
@@ -101,6 +98,21 @@ export class CommentReference extends LitElement {
   private renderCommentContent() {
     if (!this.commentData) return '';
 
+    const source = this.commentData.refPost && this.commentData.refUrl
+      ? html`
+          <div class="comment-source">
+            来源于: <a href="${this.commentData.refUrl}" target="_blank">
+              ${this.commentData.refPost}
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px; vertical-align: middle;">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+              </svg>
+            </a>
+          </div>
+        `
+      : '';
+
     return html`
       <div class="comment-header">
         <div class="comment-avatar">
@@ -111,6 +123,7 @@ export class CommentReference extends LitElement {
         </div>
         <div class="comment-info">
           <div class="comment-author">${this.commentData.displayName}</div>
+          ${source}
         </div>
       </div>
       <div class="comment-content">${unsafeHTML(this.commentData.raw)}</div>

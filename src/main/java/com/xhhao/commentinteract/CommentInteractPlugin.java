@@ -1,14 +1,10 @@
 package com.xhhao.commentinteract;
 
-import com.xhhao.commentinteract.extension.Comment;
-import com.xhhao.commentinteract.extension.Reply;
 import org.springframework.stereotype.Component;
 import run.halo.app.extension.SchemeManager;
-import run.halo.app.extension.index.IndexSpec;
 import run.halo.app.plugin.BasePlugin;
 import run.halo.app.plugin.PluginContext;
 
-import static run.halo.app.extension.index.IndexAttributeFactory.simpleAttribute;
 
 /**
  * <p>Plugin main class to manage the lifecycle of the plugin.</p>

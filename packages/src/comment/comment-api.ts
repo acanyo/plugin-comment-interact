@@ -10,14 +10,19 @@ export async function fetchCommentByName(name: string): Promise<CommentData | nu
 
   const result = await response.json();
 
-  if (result.kind === 'Comment') {
+  if (result.kind === 'Comment' || result.kind === 'Reply') {
     return result as CommentData;
   }
 
+  if (result && typeof result === 'object' && (result.content || result.raw)) {
+    const data = result as CommentData;
+    if (!data.name) data.name = data.metadataName || 'unknown';
+    if (!data.displayName) data.displayName = '匿名用户';
+    return data;
+  }
   if (result.data) {
     return result.data as CommentData;
   }
-
   return null;
 }
 

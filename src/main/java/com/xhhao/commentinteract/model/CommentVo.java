@@ -1,5 +1,7 @@
 package com.xhhao.commentinteract.model;
 
+import run.halo.app.extension.Ref;
+
 public record CommentVo(
     String kind,
     String name,
@@ -11,6 +13,9 @@ public record CommentVo(
     String commentName,
     String userAvatar,
     Boolean approved,
+    Ref ref,
+    String refPost,
+    String refUrl,
     String type
 ) {
 }

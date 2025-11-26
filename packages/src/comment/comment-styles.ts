@@ -107,6 +107,25 @@ export const commentStyles = css`
     line-height: 1.4;
   }
 
+  .comment-source {
+    font-size: 12px;
+    color: var(--comment-text-secondary);
+    margin-top: 2px;
+    line-height: 1.4;
+  }
+
+  .comment-source a {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .comment-source a:hover {
+    color: var(--comment-text-color);
+    border-bottom-color: var(--comment-text-color);
+  }
+
   .comment-content {
     font-size: 14px;
     line-height: 1.6;
@@ -237,6 +256,17 @@ export const commentStyles = css`
   :host(.dark) .comment-author,
   .comment-container.dark .comment-author {
     color: var(--comment-author-color-dark);
+  }
+
+  :host(.dark) .comment-source,
+  .comment-container.dark .comment-source {
+    color: var(--comment-text-secondary-dark);
+  }
+
+  :host(.dark) .comment-source a:hover,
+  .comment-container.dark .comment-source a:hover {
+    color: var(--comment-text-color-dark);
+    border-bottom-color: var(--comment-text-color-dark);
   }
 
   :host(.dark) .comment-content,

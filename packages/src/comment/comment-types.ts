@@ -1,3 +1,10 @@
+export interface ExtensionRef {
+  group: string;
+  version: string;
+  kind: string;
+  name: string;
+}
+
 export interface CommentData {
   kind: string;
   name: string;
@@ -9,6 +16,10 @@ export interface CommentData {
   commentName?: string;
   userAvatar?: string;
   approved: boolean;
+  ref?: ExtensionRef;
+  refPost?: string;
+  refUrl?: string;
+  type?: string;
 }
 
 export interface CommentApiResponse {
