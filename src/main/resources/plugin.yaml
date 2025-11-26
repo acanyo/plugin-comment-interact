@@ -15,8 +15,10 @@ spec:
   homepage: https://github.com/Handsome/comment-interact#readme
   repo: https://github.com/Handsome/comment-interact
   issues: https://github.com/Handsome/comment-interact/issues
-  displayName: "comment-interact"
-  description: "comment-interact - Halo 插件"
+  settingName: plugin-comment-interact-settings
+  configMapName: plugin-comment-interact-configMap
+  displayName: "评论互动增强"
+  description: "增强评论区互动体验，提供实时滚动的评论弹幕和评论引用展示功能。"
   license:
     - name: "GPL-3.0"
       url: "https://github.com/Handsome/comment-interact/blob/main/LICENSE"

@@ -1,6 +1,6 @@
-
 package com.xhhao.commentinteract.processor;
 
+import com.xhhao.commentinteract.service.SettingConfigGetter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -11,6 +11,7 @@ import run.halo.app.core.extension.content.Post;
 import run.halo.app.theme.ReactivePostContentHandler;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 
 @Slf4j
@@ -19,33 +20,33 @@ import java.util.Properties;
 public class PostContentHandler implements ReactivePostContentHandler {
     
     static final PropertyPlaceholderHelper PROPERTY_PLACEHOLDER_HELPER = new PropertyPlaceholderHelper("${", "}");
-
+    private final SettingConfigGetter settingConfigGetter;
 
     @Override
     public Mono<PostContentContext> handle(@NotNull PostContentContext contentContext) {
-        injectDOM(contentContext);
-        return Mono.just(contentContext);
+        return settingConfigGetter.getBasicConfig()
+            .flatMap(config -> {
+                injectDOM(contentContext, config);
+                return Mono.just(contentContext);
+            });
     }
 
-    private void injectDOM(PostContentContext contentContext) {
+    private void injectDOM(PostContentContext contentContext, SettingConfigGetter.BasicConfig config) {
         Properties properties = new Properties();
         Post post = contentContext.getPost();
         Map<String, String> annotations = post.getMetadata().getAnnotations();
         if (annotations != null && annotations.containsKey("barrage.xhhao.com/postEnable")) {
-            properties.setProperty("kind", Post.GVK.kind());
-            properties.setProperty("group", Post.GVK.group());
-            properties.setProperty("name", post.getMetadata().getName());
-            // speed="20"     <!-- 滚动速度(秒)，越小越快，默认20 -->
-            //     rows="8"       <!-- 轨道数量，默认8 -->
-            //     loop="false"   <!-- 是否循环播放，默认false -->
-            properties.setProperty("speed","10");
-            properties.setProperty("rows","8");
-            properties.setProperty("loop","false");
+        properties.setProperty("kind", Post.GVK.kind());
+        properties.setProperty("group", Post.GVK.group());
+        properties.setProperty("name", post.getMetadata().getName());
+        properties.setProperty("speed", String.valueOf(Optional.ofNullable(config.getBarrageSpeed()).orElse(20)));
+        properties.setProperty("rows", String.valueOf(Optional.ofNullable(config.getBarrageRows()).orElse(8)));
+        properties.setProperty("loop", String.valueOf(Optional.ofNullable(config.getBarrageLoop()).orElse(false)));
 
-            String dom = PROPERTY_PLACEHOLDER_HELPER.replacePlaceholders(
-                "<xhhao-barrage kind=\"${kind}\" group=\"${group}\" name=\"${name}\" speed=\"${speed}\" rows=\"${rows}\" loop=\"${loop}\"></xhhao-barrage>",
-                properties
-            );
+        String dom = PROPERTY_PLACEHOLDER_HELPER.replacePlaceholders(
+            "<xhhao-barrage kind=\"${kind}\" group=\"${group}\" name=\"${name}\" speed=\"${speed}\" rows=\"${rows}\" loop=\"${loop}\"></xhhao-barrage>",
+            properties
+        );
 
             contentContext.setContent(dom + "\n" + contentContext.getContent());
         }
