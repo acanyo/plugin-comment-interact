@@ -143,31 +143,22 @@ export async function fetchCommentWithReplies(name: string): Promise<CommentWith
       commentMap.set(replyData.name, replyData);
     }
   }
-
-  // Process replies to add @User reference
   replies.forEach(reply => {
     let replyToName = '';
-
-    // Check for quoteReply first (nested reply)
     if (reply.quoteReply) {
       const quotedComment = commentMap.get(reply.quoteReply);
       if (quotedComment) {
         replyToName = quotedComment.displayName;
       }
     }
-    // Fallback to commentName (reply to main comment)
     else if (reply.commentName) {
       const mainComment = commentMap.get(reply.commentName);
       if (mainComment) {
         replyToName = mainComment.displayName;
       }
     }
-
-    // If we found a target user, prepend the @mention
     if (replyToName) {
-      // Use a span for styling the mention
       const mentionHtml = `<span class="mention">@${replyToName}</span> `;
-      // Check if content already starts with a p tag (common in rich text)
       if (reply.content.trim().startsWith('<p>')) {
         reply.content = reply.content.replace('<p>', `<p>${mentionHtml}`);
       } else {

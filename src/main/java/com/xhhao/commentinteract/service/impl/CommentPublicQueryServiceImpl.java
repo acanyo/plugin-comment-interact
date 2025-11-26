@@ -135,6 +135,8 @@ public class CommentPublicQueryServiceImpl implements CommentPublicQueryService 
             .builder()
             .displayName(owner.getDisplayName())
             .avatar(owner.getAvatar())
+            .name(owner.getName())
+            .email(owner.getName())
             .kind(owner.getKind())
             .build());
 
@@ -172,6 +174,8 @@ public class CommentPublicQueryServiceImpl implements CommentPublicQueryService 
             .builder()
             .displayName(owner.getDisplayName())
             .avatar(owner.getAvatar())
+            .name(owner.getName())
+            .email(owner.getName())
             .kind(owner.getKind())
             .build());
 
