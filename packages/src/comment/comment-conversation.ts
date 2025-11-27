@@ -6,6 +6,7 @@ import { fetchCommentWithReplies } from './comment-api';
 import type { CommentWithReplies } from './comment-api';
 import type { CommentData } from './comment-types';
 import { conversationStyles } from './conversation-styles';
+import { detectDarkTheme, createThemeObserver } from '../utils/theme';
 
 @customElement('comment-conversation')
 export class CommentConversation extends LitElement {
@@ -28,6 +29,39 @@ export class CommentConversation extends LitElement {
 
   @state()
   private _error: string | null = null;
+  
+  @state()
+  private isDark = false;
+
+  private themeObserver?: MutationObserver;
+
+  connectedCallback() {
+    super.connectedCallback();
+    this.detectTheme();
+    this.observeTheme();
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    if (this.themeObserver) {
+      this.themeObserver.disconnect();
+    }
+  }
+
+  private detectTheme() {
+    this.isDark = detectDarkTheme();
+    if (this.isDark) {
+      this.classList.add('dark');
+    } else {
+      this.classList.remove('dark');
+    }
+  }
+
+  private observeTheme() {
+    this.themeObserver = createThemeObserver(() => {
+      this.detectTheme();
+    });
+  }
 
   updated(changedProperties: Map<string, any>) {
     if (changedProperties.has('name') && this.name) {
@@ -84,14 +118,26 @@ export class CommentConversation extends LitElement {
 
     const sourceInfo = comment.refPost && comment.refUrl
       ? html`
-          <div class="conversation-source">
-            来源于: <a href="${comment.refUrl}" target="_blank">
-              ${comment.refPost}
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px; vertical-align: middle;">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-                <polyline points="15 3 21 3 21 9"></polyline>
-                <line x1="10" y1="14" x2="21" y2="3"></line>
-              </svg>
+          <div class="conversation-header">
+            <a href="${comment.refUrl}" target="_blank" class="source-link" title="点击查看来源: ${comment.refPost}">
+              <span class="source-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <polyline points="10 9 9 9 8 9"></polyline>
+                </svg>
+              </span>
+              <span class="source-label">引用自</span>
+              <span class="source-title">${comment.refPost}</span>
+              <span class="source-arrow">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <line x1="10" y1="14" x2="21" y2="3"></line>
+                </svg>
+              </span>
             </a>
           </div>
         `
@@ -143,7 +189,7 @@ export class CommentConversation extends LitElement {
           </div>
 
           <div style="display: flex; align-items: flex-end; gap: 0.5rem;">
-            <div class="message-bubble">
+            <div class="message-bubble ${isOwner ? 'owner' : ''}">
               <div class="message-content">
                 ${unsafeHTML(comment.content)}
               </div>

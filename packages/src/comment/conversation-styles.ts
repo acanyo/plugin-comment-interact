@@ -51,39 +51,94 @@ export const conversationStyles = css`
   .conversation-container {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    padding: 1rem;
+    gap: 0.5rem;
+    padding: 0;
     background: var(--cc-bg-container);
     border: 1px solid var(--cc-border-container);
     border-radius: 12px;
     max-width: 600px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     transition: all 0.3s ease;
+    overflow: hidden;
   }
 
-  /* Source Info */
-  .conversation-source {
-    font-size: 0.75rem;
-    color: var(--cc-text-muted);
-    padding: 0.5rem 0.75rem;
+  /* Header / Source Info */
+  .conversation-header {
+    padding: 0.75rem 1rem;
     background: var(--cc-bubble-bg);
-    border-radius: 8px;
-    border: 1px solid var(--cc-bubble-border);
-    margin-bottom: 0.25rem;
-  }
-
-  .conversation-source a {
-    color: var(--cc-primary);
-    text-decoration: none;
-    font-weight: 500;
-    transition: all 0.2s;
-    display: inline-flex;
+    border-bottom: 1px solid var(--cc-border-container);
+    display: flex;
     align-items: center;
   }
 
-  .conversation-source a:hover {
-    color: #2563eb;
-    text-decoration: underline;
+  .source-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: var(--cc-text-sub);
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .source-link:hover {
+    color: var(--cc-primary);
+  }
+
+  .source-icon {
+    display: flex;
+    align-items: center;
+    color: var(--cc-text-muted);
+    flex-shrink: 0;
+  }
+
+  .source-link:hover .source-icon {
+    color: var(--cc-primary);
+  }
+  
+  .source-label {
+    color: var(--cc-text-muted);
+    font-weight: 400;
+    flex-shrink: 0;
+  }
+
+  .source-title {
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+  }
+
+  .source-arrow {
+    display: flex;
+    align-items: center;
+    opacity: 0;
+    transform: translateX(-5px);
+    transition: all 0.2s ease;
+    color: var(--cc-text-muted);
+    flex-shrink: 0;
+  }
+
+  .source-link:hover .source-arrow {
+    opacity: 1;
+    transform: translateX(0);
+    color: var(--cc-primary);
+  }
+  
+  /* Adjust padding for message list */
+  .conversation-container > .date-divider:first-of-type {
+    margin-top: 1.5rem;
+  }
+  
+  .message-item {
+    margin: 0 1rem;
+  }
+  
+  .message-item:last-child {
+    margin-bottom: 1rem;
   }
 
   /* Date Divider */
@@ -237,6 +292,81 @@ export const conversationStyles = css`
   }
   .message-content p:first-child { margin-top: 0; }
   .message-content p:last-child { margin-bottom: 0; }
+
+  .message-content pre {
+    background: rgba(0, 0, 0, 0.05);
+    padding: 0.75rem;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.85em;
+    margin: 0.5rem 0;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+  }
+
+  :host(.dark) .message-content pre {
+    background: rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .message-content code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.9em;
+    padding: 0.1rem 0.3rem;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+  }
+
+  .message-content pre code {
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
+    color: inherit;
+  }
+
+  .message-content blockquote {
+    margin: 0.5rem 0;
+    padding-left: 0.75rem;
+    border-left: 3px solid var(--cc-primary);
+    color: var(--cc-text-sub);
+    font-style: italic;
+  }
+
+  .message-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 6px;
+    margin: 0.5rem 0;
+    display: block;
+  }
+
+  .message-content ul,
+  .message-content ol {
+    padding-left: 1.2rem;
+    margin: 0.5rem 0;
+  }
+
+  .message-content li {
+    margin: 0.2rem 0;
+  }
+  
+  .message-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.5rem 0;
+    font-size: 0.9em;
+  }
+  
+  .message-content th,
+  .message-content td {
+    padding: 0.4rem;
+    border: 1px solid var(--cc-border-container);
+  }
+  
+  .message-content th {
+    background: rgba(0, 0, 0, 0.02);
+    font-weight: 600;
+  }
 
   /* Links & Mentions */
   .message-content a,
