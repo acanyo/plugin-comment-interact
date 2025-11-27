@@ -35,7 +35,7 @@ public class SinglePageContentHandler implements ReactiveSinglePageContentHandle
         Properties properties = new Properties();
         SinglePage singlePage = singlePageContent.getSinglePage();
         Map<String, String> annotations = singlePage.getMetadata().getAnnotations();
-        if (annotations != null && annotations.containsKey("barrage.xhhao.com/postEnable") && annotations.get("barrage.xhhao.com/postEnable").equals("true")) {
+        if (annotations != null && annotations.containsKey("barrage.xhhao.com/pageEnable") && annotations.get("barrage.xhhao.com/pageEnable").equals("true")) {
         properties.setProperty("kind", SinglePage.GVK.kind());
         properties.setProperty("group", SinglePage.GVK.group());
         properties.setProperty("name", singlePage.getMetadata().getName());
