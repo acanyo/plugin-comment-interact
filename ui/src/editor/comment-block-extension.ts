@@ -255,12 +255,10 @@ const CommentBlockExtension = Node.create({
           items: [
             {
               priority: 50,
-              props: {
-                icon: markRaw(MdiDeleteForeverOutline),
-                title: '删除',
-                action: ({ editor }: { editor: Editor }) => {
-                  return deleteNode(CommentBlockExtension.name, editor)
-                },
+              icon: markRaw(MdiDeleteForeverOutline),
+              title: '删除',
+              action: () => {
+                return deleteNode(CommentBlockExtension.name, editor)
               },
             },
           ],

@@ -1,8 +1,9 @@
 package com.xhhao.commentinteract.service.impl;
 
 import static org.springframework.data.domain.Sort.Order.desc;
-import static run.halo.app.extension.index.query.QueryFactory.contains;
-import static run.halo.app.extension.index.query.QueryFactory.or;
+import static run.halo.app.extension.index.query.Queries.contains;
+import static run.halo.app.extension.index.query.Queries.isNull;
+import static run.halo.app.extension.index.query.Queries.or;
 
 import com.xhhao.commentinteract.extension.Comment;
 import com.xhhao.commentinteract.extension.Reply;
@@ -24,7 +25,6 @@ import run.halo.app.extension.ListOptions;
 import run.halo.app.extension.ListResult;
 import run.halo.app.extension.ReactiveExtensionClient;
 import run.halo.app.extension.Ref;
-import run.halo.app.extension.index.query.QueryFactory;
 import run.halo.app.plugin.extensionpoint.ExtensionGetter;
 
 @Service
@@ -37,7 +37,7 @@ public class CommentServiceImpl implements CommentService {
     private ListOptions buildListOptions(String keyword, int flag) {
         var listOptions = new ListOptions();
         var builder = ListOptions.builder(listOptions);
-        builder.andQuery(QueryFactory.isNull("metadata.deletionTimestamp"));
+        builder.andQuery(isNull("metadata.deletionTimestamp"));
         Optional.ofNullable(keyword)
             .filter(StringUtils::isNotBlank)
             .ifPresent(k -> {

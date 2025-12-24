@@ -31,10 +31,10 @@ import java.util.function.Function;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static run.halo.app.core.extension.content.Comment.CommentOwner.ownerIdentity;
-import static run.halo.app.extension.index.query.QueryFactory.and;
-import static run.halo.app.extension.index.query.QueryFactory.equal;
-import static run.halo.app.extension.index.query.QueryFactory.isNull;
-import static run.halo.app.extension.index.query.QueryFactory.or;
+import static run.halo.app.extension.index.query.Queries.and;
+import static run.halo.app.extension.index.query.Queries.equal;
+import static run.halo.app.extension.index.query.Queries.isNull;
+import static run.halo.app.extension.index.query.Queries.or;
 
 /**
  * comment public query service implementation.
